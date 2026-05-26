@@ -111,7 +111,14 @@ try:
         search_query = st.sidebar.text_input("Enter Book Title:", "")
         
         all_books_list = recommender.books_df["Book-Title"].unique()
-        filtered_books = [b for b in all_books_list if search_query.lower() in b.lower()] if search_query else []
+        
+        # Enhanced Unicode Search Logic: Seamlessly parses Amharic strings and removes casing limitations
+        filtered_books = []
+        if search_query:
+            clean_query = search_query.strip().lower()
+            for b in all_books_list:
+                if isinstance(b, str) and clean_query in b.lower():
+                    filtered_books.append(b)
         
         if filtered_books:
             chosen_book_title = st.sidebar.selectbox("Select Target Book from Results:", filtered_books)
