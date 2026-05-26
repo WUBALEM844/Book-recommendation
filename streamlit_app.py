@@ -233,7 +233,16 @@ try:
                             fallback_cover = "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=150&auto=format&fit=crop&q=60"
 
                         clean_title = book['title'].split(" Vol")[0].replace(' ', '+')
-                        search_url = f"https://openlibrary.org/search?q={clean_title}"
+                        
+                        # Direct reading redirection for Amharic masterpieces
+                        if book['title'] == "ፍቅር እስከ መቃብር":
+                            search_url = "https://archive.org/details/fiqir-eske-meqabir"
+                        elif book['title'] == "የእኔ ማስታወሻ":
+                            search_url = "https://www.goodreads.com/book/show/24434720"
+                        elif book['title'] == "የሐበሻ ጀብዱ":
+                            search_url = "https://www.goodreads.com/book/show/53912190"
+                        else:
+                            search_url = f"https://openlibrary.org/search?q={clean_title}"
 
                         st.markdown(f"""
                             <div class='rec-grid-card'>
