@@ -4,7 +4,7 @@ import numpy as np
 from app import BookRecommender
 import os
 
-# Page Configuration - Translated to English
+# Page Configuration
 st.set_page_config(page_title="Smart Book Recommendation System", page_icon="📚", layout="wide")
 
 # Initialize and Cache the Recommender Engine for ultra-fast load
@@ -17,76 +17,61 @@ def load_recommender():
 try:
     recommender = load_recommender()
     
-    # Sidebar Selection - Translated to English
+    # Sidebar Selection
     st.sidebar.header("⚙️ Control Panel")
     
-    # Theme Configuration (Light vs Dark Mode) - Translated to English
+    # Theme Configuration
     theme_choice = st.sidebar.selectbox("🎨 App Interface Theme:", ["Light Mode ☀️", "Dark Mode 🌙"])
     
-    # Set dynamic colors based on theme selection (True Deep Colors)
+    # Set dynamic colors based on theme selection
     if theme_choice == "Dark Mode 🌙":
-        bg_color = "#0B0F19"       # Deep Dark Space Blue
-        card_bg = "#111827"        # Dark Card Grey/Blue
-        text_main = "#F9FAFB"      # Crisp White
-        text_sub = "#9CA3AF"       # Muted Grey
-        border_color = "#374151"   # Slate Border
-        badge_bg = "#1E1B4B"       # Deep Purple/Indigo
-        badge_text = "#C7D2FE"     # Light Indigo Text
-        input_info = "#1F2937"     # Info Box Dark
+        bg_color = "#0B0F19"       
+        card_bg = "#111827"        
+        text_main = "#F9FAFB"      
+        text_sub = "#9CA3AF"       
+        border_color = "#374151"   
+        badge_bg = "#1E1B4B"       
+        badge_text = "#C7D2FE"     
+        input_info = "#1F2937"     
     else:
-        bg_color = "#F8FAFC"       # Clean Slate White
-        card_bg = "#FFFFFF"        # Pure White Card
-        text_main = "#0F172A"      # Dark Charcoal Text
-        text_sub = "#64748B"       # Slate Muted Text
-        border_color = "#E2E8F0"   # Light Border
-        badge_bg = "#FEF3C7"       # Amber Yellow Badge
-        badge_text = "#B45309"     # Dark Amber Text
-        input_info = "#EFF6FF"     # Light Blue Info Box
+        bg_color = "#F8FAFC"       
+        card_bg = "#FFFFFF"        
+        text_main = "#0F172A"      
+        text_sub = "#64748B"       
+        border_color = "#E2E8F0"   
+        badge_bg = "#FEF3C7"       
+        badge_text = "#B45309"     
+        input_info = "#EFF6FF"     
 
-    # Premium Modern UI Styling with Dynamic Themes & Streamlit Menu Cleaner
+    # Premium Modern UI Styling
     st.markdown(f"""
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
-        /* 1. HIDING STREAMLIT DEFAULT MENU & DEPLOY BUTTONS */
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         header {{visibility: hidden;}}
         .stDeployButton {{display:none !important;}}
-        
-        /* 2. Global Styles */
         * {{ font-family: 'Inter', sans-serif; }}
         .stApp {{ background-color: {bg_color} !important; color: {text_main} !important; }}
-        
-        /* 3. Titles */
         .main-title {{ font-size: 38px !important; font-weight: 800; color: {text_main}; text-align: center; margin-bottom: 5px; letter-spacing: -0.5px; }}
         .sub-title {{ font-size: 15px; color: {text_sub}; text-align: center; margin-bottom: 35px; }}
         h3 {{ color: {text_main} !important; }}
-        
-        /* 4. Left Column: User History Cards */
         .history-card {{ background: {card_bg}; padding: 16px; border-radius: 12px; border: 1px solid {border_color}; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }}
         .history-title {{ font-size: 16px !important; font-weight: 600; color: {text_main}; }}
         .history-author {{ font-size: 13px; color: {text_sub}; margin-top: 2px; }}
         .rating-badge {{ display: inline-flex; align-items: center; background-color: {badge_bg}; color: {badge_text}; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 10px; }}
-        
-        /* 5. Right Column: AI Recommendation Grid (Fixed Uniform Heights) */
         .rec-grid-card {{ background: {card_bg}; border: 1px solid {border_color}; padding: 16px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; height: 460px; margin-bottom: 20px; }}
         .img-container {{ height: 200px; overflow: hidden; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; background: {border_color}; }}
         .img-container img {{ max-height: 100%; object-fit: cover; }}
         .rec-title {{ font-size: 16px !important; font-weight: 700; color: {text_main}; line-height: 1.3; height: 42px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }}
         .rec-author {{ font-size: 13px; color: {text_sub}; margin-top: 4px; height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
         .score-badge {{ font-size: 12px; color: #059669; font-weight: 600; background: #ECFDF5; padding: 4px 8px; border-radius: 6px; display: inline-block; margin-top: 8px; }}
-        
-        /* 6. Read Button Link */
         .read-btn {{ display: block; text-align: center; margin-top: auto; padding: 10px 16px; background-color: #2563EB; color: white !important; text-decoration: none; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 4px rgba(37,99,235,0.2); transition: all 0.2s ease; }}
         .read-btn:hover {{ background-color: #1D4ED8; box-shadow: 0 4px 8px rgba(29,78,216,0.3); text-decoration: none; }}
-        
-        /* 7. Custom Alert Messages */
         .info-msg {{ background-color: {input_info}; color: {text_main}; padding: 15px; border-radius: 10px; font-size: 14px; margin-bottom: 15px; border-left: 4px solid #3B82F6; }}
         </style>
     """, unsafe_allow_html=True)
 
-    # Main Header Text - Translated to English
     st.markdown('<div class="main-title">📚 Smart Book Recommendation System</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-title">This core engine evaluates multi-dimensional vector spaces using AI Cosine Similarity metrics to deliver dynamic suggestions.</div>', unsafe_allow_html=True)
     st.markdown("---")
@@ -94,7 +79,6 @@ try:
     if "custom_ratings" not in st.session_state:
         st.session_state.custom_ratings = {}
 
-    # Mode Options - Translated to English
     mode = st.sidebar.radio("Operational Mode:", ["Simulate Dataset User", "Dynamic New User Profile"])
 
     if mode == "Simulate Dataset User":
@@ -110,22 +94,36 @@ try:
         
         search_query = st.sidebar.text_input("Enter Book Title:", "")
         
-        all_books_list = recommender.books_df["Book-Title"].unique()
+        # Safe Extraction of Titles
+        all_books_list = list(recommender.books_df["Book-Title"].dropna().unique())
         
-        # Enhanced Unicode Search Logic: Seamlessly parses Amharic strings and removes casing limitations
+        # DIRECTLY INJECT AMHARIC MASTERPIECES HERE (Guarantees they exist without depending on CSV files)
+        local_masterpieces = ["ፍቅር እስከ መቃብር", "የእኔ ማስታወሻ", "የሐበሻ ጀብዱ"]
+        for masterpiece in local_masterpieces:
+            if masterpiece not in all_books_list:
+                all_books_list.append(masterpiece)
+        
+        # Robust Unicode and Character Matching Logic
         filtered_books = []
         if search_query:
             clean_query = search_query.strip().lower()
             for b in all_books_list:
-                if isinstance(b, str) and clean_query in b.lower():
-                    filtered_books.append(b)
+                if clean_query in str(b).lower():
+                    filtered_books.append(str(b))
         
         if filtered_books:
             chosen_book_title = st.sidebar.selectbox("Select Target Book from Results:", filtered_books)
             rating_value = st.sidebar.slider("Your Explicit Rating (⭐):", 1, 10, 8)
             
             if st.sidebar.button("Add Rating to Profile"):
-                chosen_isbn = recommender.books_df[recommender.books_df["Book-Title"] == chosen_book_title]["ISBN"].values[0]
+                # Safe ISBN generation even if it's a newly added local masterpiece
+                try:
+                    chosen_isbn = recommender.books_df[recommender.books_df["Book-Title"] == chosen_book_title]["ISBN"].values[0]
+                except IndexError:
+                    if chosen_book_title == "ፍቅር እስከ መቃብር": chosen_isbn = "AMH001"
+                    elif chosen_book_title == "የእኔ ማስታወሻ": chosen_isbn = "AMH002"
+                    else: chosen_isbn = "AMH003"
+                    
                 st.session_state.custom_ratings[chosen_isbn] = rating_value
                 st.sidebar.success(f"📌 '{chosen_book_title}' successfully registered to profile!")
         elif search_query:
@@ -137,15 +135,26 @@ try:
 
         custom_rows = []
         for isbn, rate in st.session_state.custom_ratings.items():
-            b_row = recommender.books_df[recommender.books_df["ISBN"] == isbn]
-            if not b_row.empty:
+            # Hardcoded dictionary fallback to ensure local books render metadata beautifully
+            local_metadata = {
+                "AMH001": {"title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ"},
+                "AMH002": {"title": "የእኔ ማስታወሻ", "author": "ስብሐት ገብረእግዚአብሔር"},
+                "AMH003": {"title": "የሐበሻ ጀብዱ", "author": "ይልማ ደሬሳ"}
+            }
+            
+            if isbn in local_metadata:
                 custom_rows.append({
-                    "User-ID": selected_user,
-                    "ISBN": isbn,
-                    "Book-Rating": rate,
-                    "Book-Title": b_row["Book-Title"].values[0],
-                    "Book-Author": b_row["Book-Author"].values[0] if "Book-Author" in b_row.columns else "Unknown"
+                    "User-ID": selected_user, "ISBN": isbn, "Book-Rating": rate,
+                    "Book-Title": local_metadata[isbn]["title"], "Book-Author": local_metadata[isbn]["author"]
                 })
+            else:
+                b_row = recommender.books_df[recommender.books_df["ISBN"] == isbn]
+                if not b_row.empty:
+                    custom_rows.append({
+                        "User-ID": selected_user, "ISBN": isbn, "Book-Rating": rate,
+                        "Book-Title": b_row["Book-Title"].values[0],
+                        "Book-Author": b_row["Book-Author"].values[0] if "Book-Author" in b_row.columns else "Unknown"
+                    })
         user_books = pd.DataFrame(custom_rows)
 
         if not user_books.empty:
@@ -156,7 +165,7 @@ try:
 
     num_recommendations = st.sidebar.slider("Number of Recommendations:", min_value=1, max_value=10, value=5)
 
-    # Main UI Layout Columns - Headers Translated to English
+    # Main UI Layout Columns
     col1, col2 = st.columns([1, 2], gap="large")
 
     with col1:
@@ -198,11 +207,9 @@ try:
                         elif "Sapiens" in book['title'] or "Educated" in book['title']:
                             fallback_cover = "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=150&auto=format&fit=crop&q=60"
 
-                        # Create clean title link for online library search
                         clean_title = book['title'].split(" Vol")[0].replace(' ', '+')
                         search_url = f"https://openlibrary.org/search?q={clean_title}"
 
-                        # Dynamic HTML Injector for exact uniform spacing structure - Labels Translated to English
                         st.markdown(f"""
                             <div class='rec-grid-card'>
                                 <div class='img-container'>
