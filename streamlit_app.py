@@ -188,7 +188,105 @@ try:
             recommender.prepare_matrices()
             recommender.train()
 
-    num_recommendations = st.sidebar.slider("Number of Recommendations:", min_value=1, max_value=10, value=5)
+    num_recommendations = st.sidebar.slider("Number of Recommendations:", min_value=1, max_value=10, value=5)import streamlit as st
+import pandas as pd
+import numpy as np
+from app import BookRecommender
+import os
+
+# ==============================================================================
+# AUTOMATIC AMHARIC BOOKS INJECTOR
+# ==============================================================================
+def inject_amharic_masterpieces():
+    books_path = "book-dataset/Books.csv"
+    if os.path.exists(books_path):
+        try:
+            # Read current dataset with UTF-8 encoding safely
+            df = pd.read_csv(books_path, low_memory=False, encoding="utf-8")
+            
+            # Check if Amharic books already exist to avoid duplicate injection
+            if not df["ISBN"].str.contains("AMH001", na=False).any():
+                amharic_books = [
+                    {"ISBN": "AMH001", "Book-Title": "ፍቅር እስከ መቃብር", "Book-Author": "ሐዲስ አለማየሁ", "Year-Of-Publication": 1965, "Publisher": "Berhanena Selam"},
+                    {"ISBN": "AMH002", "Book-Title": "የእኔ ማስታወሻ", "Book-Author": "ስብሐት ገብረእግዚአብሔር", "Year-Of-Publication": 2001, "Publisher": "Mega Publishing"},
+                    {"ISBN": "AMH003", "Book-Title": "የሐበሻ ጀብዱ", "Book-Author": "ይልማ ደሬሳ", "Year-Of-Publication": 1970, "Publisher": "Artistic Printing Press"}
+                ]
+                amharic_df = pd.DataFrame(amharic_books)
+                # Concatenate and save back tightly using forced UTF-8
+                updated_df = pd.concat([df, amharic_df], ignore_index=True)
+                updated_df.to_csv(books_path, index=False, encoding="utf-8")
+        except Exception:
+            # Fallback silently if there's any file access glitch during boot
+            pass
+
+# Run the injector before starting the app pipeline
+inject_amharic_masterpieces()
+# ==============================================================================
+
+# Page Configuration
+st.set_page_config(page_title="Smart Book Recommendation System", page_icon="📚", layout="wide")
+
+# Initialize and Cache the Recommender Engine for ultra-fast load
+@st.cache_resource
+def load_recommender():
+    engine = BookRecommender()
+    engine.run_pipeline()
+    return engine
+
+try:
+    recommender = load_recommender()
+    
+    # Sidebar Selection
+    st.sidebar.header("⚙️ Control Panel")
+    
+    # Theme Configuration
+    theme_choice = st.sidebar.selectbox("🎨 App Interface Theme:", ["Light Mode ☀️", "Dark Mode 🌙"])
+    
+    # Set dynamic colors based on theme selection
+    if theme_choice == "Dark Mode 🌙":
+        bg_color = "#0B0F19"       
+        card_bg = "#111827"        
+        text_main = "#F9FAFB"      
+        text_sub = "#9CA3AF"       
+        border_color = "#374151"   
+        badge_bg = "#1E1B4B"       
+        badge_text = "#C7D2FE"     
+        input_info = "#1F2937"     
+    else:
+        bg_color = "#F8FAFC"       
+        card_bg = "#FFFFFF"        
+        text_main = "#0F172A"      
+        text_sub = "#64748B"       
+        border_color = "#E2E8F0"   
+        badge_bg = "#FEF3C7"       
+        badge_text = "#B45309"     
+        input_info = "#EFF6FF"     
+
+    # Premium Modern UI Styling
+    st.markdown(f"""
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        #MainMenu {{visibility: hidden;}}
+        footer {{visibility: hidden;}}
+        header {{visibility: hidden;}}
+        .stDeployButton {{display:none !important;}}
+        * {{ font-family: 'Inter', sans-serif; }}
+        .stApp {{ background-color: {bg_color} !important; color: {text_main} !important; }}
+        .main-title {{ font-size: 38px !important; font-weight: 800; color: {text_main}; text-align: center; margin-bottom: 5px; letter-spacing: -0.5px; }}
+        .sub-title {{ font-size: 15px; color: {text_sub}; text-align: center; margin-bottom: 35px; }}
+        h3 {{ color: {text_main} !important; }}
+        .history-card {{ background: {card_bg}; padding: 16px; border-radius: 12px; border: 1px solid {border_color}; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }}
+        .history-title {{ font-size: 16px !important; font-weight: 600; color: {text_main}; }}
+        .history-author {{ font-size: 13px; color: {text_sub}; margin-top: 2px; }}
+        .rating-badge {{ display: inline-flex; align-items: center; background-color: {badge_bg}; color: {badge_text}; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 10px; }}
+        .rec-grid-card {{ background: {card_bg}; border: 1px solid {border_color}; padding: 16px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; height: 460px; margin-bottom: 20px; }}
+        .img-container {{ height: 200px; overflow: hidden; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; background: {border_color}; }}
+        .img-container img {{ max-height: 100%; object-fit: cover; }}
+        .rec-title {{ font-size: 16px !important; font-weight: 700; color: {text_main}; line-height: 1.3; height: 42px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }}
+        .rec-author {{ font-size: 13px; color: {text_sub}; margin-top: 4px; height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+        .score-badge {{ font-size: 12px; color: #059669; font-weight: 600; background: #ECFDF5; padding: 4px 8px; border-radius: 6px; display: inline-block; margin-top: 8px; }}
+        .read-btn {{ display: block; text-align: center; margin-top: auto; padding: 10px 16px; background-color: #2563EB; color: white !important; text-decoration: none; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 4px rgba(37,99,235,0.2); transition: all 0.2s ease; }}
+        .read-btn:hover {{ background-color: #1D4ED8; box-shadow: 0 4px 8px rgba(29,78,216,0
 
     # Main UI Layout Columns
     col1, col2 = st.columns([1, 2], gap="large")
