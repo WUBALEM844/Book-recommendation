@@ -4,6 +4,35 @@ import numpy as np
 from app import BookRecommender
 import os
 
+# ==============================================================================
+# AUTOMATIC AMHARIC BOOKS INJECTOR (ይህ ክፍል add_amharic.py ን በራስ-ሰር በእንግሊዝኛው ፋይል ውስጥ ይሰራል)
+# ==============================================================================
+def inject_amharic_masterpieces():
+    books_path = "book-dataset/Books.csv"
+    if os.path.exists(books_path):
+        try:
+            # Read current dataset with UTF-8 encoding safely
+            df = pd.read_csv(books_path, low_memory=False, encoding="utf-8")
+            
+            # Check if Amharic books already exist to avoid duplicate injection
+            if not df["ISBN"].str.contains("AMH001", na=False).any():
+                amharic_books = [
+                    {"ISBN": "AMH001", "Book-Title": "ፍቅር እስከ መቃብር", "Book-Author": "ሐዲስ አለማየሁ", "Year-Of-Publication": 1965, "Publisher": "Berhanena Selam"},
+                    {"ISBN": "AMH002", "Book-Title": "የእኔ ማስታወሻ", "Book-Author": "ስብሐት ገብረእግዚአብሔር", "Year-Of-Publication": 2001, "Publisher": "Mega Publishing"},
+                    {"ISBN": "AMH003", "Book-Title": "የሐበሻ ጀብዱ", "Book-Author": "ይልማ ደሬሳ", "Year-Of-Publication": 1970, "Publisher": "Artistic Printing Press"}
+                ]
+                amharic_df = pd.DataFrame(amharic_books)
+                # Concatenate and save back tightly using forced UTF-8
+                updated_df = pd.concat([df, amharic_df], ignore_index=True)
+                updated_df.to_csv(books_path, index=False, encoding="utf-8")
+        except Exception:
+            # Fallback silently if there's any file access glitch during boot
+            pass
+
+# Run the injector before starting the app pipeline
+inject_amharic_masterpieces()
+# ==============================================================================
+
 # Page Configuration
 st.set_page_config(page_title="Smart Book Recommendation System", page_icon="📚", layout="wide")
 
@@ -94,16 +123,14 @@ try:
         
         search_query = st.sidebar.text_input("Enter Book Title:", "")
         
-        # Safe Extraction of Titles
+        # Get Titles and add fallback mechanism for Unicode matching
         all_books_list = list(recommender.books_df["Book-Title"].dropna().unique())
         
-        # DIRECTLY INJECT AMHARIC MASTERPIECES HERE (Guarantees they exist without depending on CSV files)
         local_masterpieces = ["ፍቅር እስከ መቃብር", "የእኔ ማስታወሻ", "የሐበሻ ጀብዱ"]
         for masterpiece in local_masterpieces:
             if masterpiece not in all_books_list:
                 all_books_list.append(masterpiece)
         
-        # Robust Unicode and Character Matching Logic
         filtered_books = []
         if search_query:
             clean_query = search_query.strip().lower()
@@ -116,7 +143,6 @@ try:
             rating_value = st.sidebar.slider("Your Explicit Rating (⭐):", 1, 10, 8)
             
             if st.sidebar.button("Add Rating to Profile"):
-                # Safe ISBN generation even if it's a newly added local masterpiece
                 try:
                     chosen_isbn = recommender.books_df[recommender.books_df["Book-Title"] == chosen_book_title]["ISBN"].values[0]
                 except IndexError:
@@ -135,7 +161,6 @@ try:
 
         custom_rows = []
         for isbn, rate in st.session_state.custom_ratings.items():
-            # Hardcoded dictionary fallback to ensure local books render metadata beautifully
             local_metadata = {
                 "AMH001": {"title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ"},
                 "AMH002": {"title": "የእኔ ማስታወሻ", "author": "ስብሐት ገብረእግዚአብሔር"},
@@ -168,63 +193,4 @@ try:
     # Main UI Layout Columns
     col1, col2 = st.columns([1, 2], gap="large")
 
-    with col1:
-        st.subheader("📖 User Interaction History")
-        if not user_books.empty:
-            for idx, row in user_books.iterrows():
-                st.markdown(f"""
-                    <div class='history-card'>
-                        <div class='history-title'>🔹 {row['Book-Title']}</div>
-                        <div class='history-author'>Author: {row['Book-Author']}</div>
-                        <div class='rating-badge'>⭐ Score: {row['Book-Rating']} / 10</div>
-                    </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.markdown("<div class='info-msg'>💡 Please search and rate books on the left panel to populate your active profile matrix.</div>", unsafe_allow_html=True)
-
-    with col2:
-        st.subheader("✨ Personalized AI Recommendations")
-        
-        if mode == "Dynamic New User Profile" and len(st.session_state.custom_ratings) == 0:
-            st.markdown("<div class='info-msg'>👋 Provide at least one book rating on the control panel to engage the computation matrix.</div>", unsafe_allow_html=True)
-        else:
-            with st.spinner("Executing dynamic matrix computations..."):
-                recommendations = recommender.recommend_books(user_id=int(selected_user), top_n=num_recommendations)
-                
-            if recommendations:
-                cols = st.columns(3)
-                for i, book in enumerate(recommendations):
-                    col_idx = i % 3
-                    with cols[col_idx]:
-                        fallback_cover = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150&auto=format&fit=crop&q=60"
-                        
-                        if "Harry Potter" in book['title']:
-                            fallback_cover = "https://images.unsplash.com/photo-1618666012174-83b441c0bc76?w=150&auto=format&fit=crop&q=60"
-                        elif "Hobbit" in book['title'] or "1984" in book['title']:
-                            fallback_cover = "https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=150&auto=format&fit=crop&q=60"
-                        elif "Gatsby" in book['title']:
-                            fallback_cover = "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=150&auto=format&fit=crop&q=60"
-                        elif "Sapiens" in book['title'] or "Educated" in book['title']:
-                            fallback_cover = "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=150&auto=format&fit=crop&q=60"
-
-                        clean_title = book['title'].split(" Vol")[0].replace(' ', '+')
-                        search_url = f"https://openlibrary.org/search?q={clean_title}"
-
-                        st.markdown(f"""
-                            <div class='rec-grid-card'>
-                                <div class='img-container'>
-                                    <img src='{fallback_cover}'>
-                                </div>
-                                <div class='rec-title'>{book['title']}</div>
-                                <div class='rec-author'>Author: {book['author']}</div>
-                                <div>
-                                    <span class='score-badge'>🎯 Proximity: {book['score']:.4f}</span>
-                                </div>
-                                <a href='{search_url}' target='_blank' class='read-btn'>📖 Read Book</a>
-                            </div>
-                        """, unsafe_allow_html=True)
-            else:
-                st.info("No correlation matches located for this target profile.")
-
-except Exception as e:
-    st.error(f"Application Initialization Error: {e}")
+    with col
