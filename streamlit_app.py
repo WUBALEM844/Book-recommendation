@@ -32,7 +32,6 @@ def inject_amharic_masterpieces():
                 updated_df = pd.concat([df, amharic_df], ignore_index=True)
                 updated_df.to_csv(books_path, index=False, encoding="utf-8")
         except Exception:
-            # Fallback silently if there's any file access glitch during boot
             pass
 
 # Run the injector before starting the app pipeline
@@ -58,7 +57,6 @@ try:
     # Theme Configuration
     theme_choice = st.sidebar.selectbox("🎨 App Interface Theme:", ["Light Mode ☀️", "Dark Mode 🌙"])
     
-    # Set dynamic colors based on theme selection
     if theme_choice == "Dark Mode 🌙":
         bg_color = "#0B0F19"       
         card_bg = "#111827"        
@@ -115,29 +113,27 @@ try:
         st.session_state.custom_ratings = {}
 
     # ==============================================================================
-    # NEW FEATURE: DIRECT AMHARIC LIBRARY DROPDOWN IN SIDEBAR
+    # FIXED & LIVE AMHARIC LIBRARY LINKS (GOODREADS & ALTERNATIVE OPEN DOMAINS)
     # ==============================================================================
     st.sidebar.markdown("---")
     st.sidebar.subheader("📚 Explore Amharic Library")
     
     local_metadata = {
-        "AMH001": {"title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ", "url": "https://archive.org/details/fiqir-eske-meqabir"},
+        "AMH001": {"title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ", "url": "https://www.goodreads.com/book/show/15725458"},
         "AMH002": {"title": "የእኔ ማስታወሻ", "author": "ስብሐት ገብረእግዚአብሔር", "url": "https://www.goodreads.com/book/show/24434720"},
         "AMH003": {"title": "የሐበሻ ጀብዱ", "author": "ይልማ ደሬሳ", "url": "https://www.goodreads.com/book/show/53912190"},
-        "AMH004": {"title": "ኦሮማይ", "author": "በአሉ ግርማ", "url": "https://archive.org/details/oromay-by-baalu-girma"},
-        "AMH005": {"title": "የቀይ ኮከብ ጥሪ", "author": "በአሉ ግርማ", "url": "https://archive.org/details/ye-qey-kokeb-tiri"},
+        "AMH004": {"title": "ኦሮማይ", "author": "በአሉ ግርማ", "url": "https://www.goodreads.com/book/show/15725452"},
+        "AMH005": {"title": "የቀይ ኮከብ ጥሪ", "author": "በአሉ ግርማ", "url": "https://www.goodreads.com/book/show/22372481"},
         "AMH006": {"title": "ሰማያዊ ፈረስ", "author": "አለማየሁ ገላጋይ", "url": "https://www.goodreads.com/book/show/15725455"},
-        "AMH007": {"title": "አልወለድም", "author": "አቤ ጉበኛ", "url": "https://archive.org/details/alweledm-by-abe-gubegna"},
-        "AMH008": {"title": "ቴዎድሮስ", "author": "አበራ ጀምበሬ", "url": "https://archive.org/details/tewodros-book"},
-        "AMH009": {"title": "ዝምታ በጎልጎታ", "author": "ዘነበ ወላ", "url": "https://archive.org/details/zimita-be-golgota"}
+        "AMH007": {"title": "አልወለድም", "author": "አቤ ጉበኛ", "url": "https://www.goodreads.com/book/show/15725464"},
+        "AMH008": {"title": "ቴዎድሮስ", "author": "አበራ ጀምበሬ", "url": "https://www.goodreads.com/book/show/36391440"},
+        "AMH009": {"title": "ዝምታ በጎልጎታ", "author": "ዘነበ ወላ", "url": "https://www.goodreads.com/book/show/44146033"}
     }
     
-    # Format options for dropdown list display
     amharic_options = ["-- Select Book to Read Directly --"] + [f"{meta['title']} ({meta['author']})" for meta in local_metadata.values()]
     selected_amharic_dropdown = st.sidebar.selectbox("Choose a book to open instantly:", amharic_options)
     
     if selected_amharic_dropdown != "-- Select Book to Read Directly --":
-        # Extract title from selection to match link
         just_title = selected_amharic_dropdown.split(" (")[0]
         matched_url = ""
         for meta in local_metadata.values():
@@ -145,7 +141,7 @@ try:
                 matched_url = meta["url"]
                 break
         if matched_url:
-            st.sidebar.markdown(f'<a href="{matched_url}" target="_blank" style="display: block; text-align: center; padding: 10px; background-color: #059669; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px;">📖 Open "{just_title}" Now</a>', unsafe_allow_html=True)
+            st.sidebar.markdown(f'<a href="{matched_url}" target="_blank" style="display: block; text-align: center; padding: 10px; background-color: #059669; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px;">📖 View "{just_title}" on Goodreads</a>', unsafe_allow_html=True)
     # ==============================================================================
 
     st.sidebar.markdown("---")
@@ -164,7 +160,6 @@ try:
         
         search_query = st.sidebar.text_input("Enter Book Title:", "")
         
-        # Get Titles and add fallback mechanism for Unicode matching
         all_books_list = list(recommender.books_df["Book-Title"].dropna().unique())
         
         local_masterpieces = [meta["title"] for meta in local_metadata.values()]
@@ -187,7 +182,6 @@ try:
                 try:
                     chosen_isbn = recommender.books_df[recommender.books_df["Book-Title"] == chosen_book_title]["ISBN"].values[0]
                 except IndexError:
-                    # Amharic Dynamic Fallback Router
                     matched_isbn = "AMH001"
                     for key, meta in local_metadata.items():
                         if meta["title"] == chosen_book_title:
@@ -229,7 +223,6 @@ try:
 
     num_recommendations = st.sidebar.slider("Number of Recommendations:", min_value=1, max_value=10, value=5)
 
-    # Main UI Layout Columns
     col1, col2 = st.columns([1, 2], gap="large")
 
     with col1:
@@ -273,7 +266,6 @@ try:
 
                         clean_title = book['title'].split(" Vol")[0].replace(' ', '+')
                         
-                        # Direct reading redirection logic
                         search_url = f"https://openlibrary.org/search?q={clean_title}"
                         for meta in local_metadata.values():
                             if book['title'] == meta["title"]:
@@ -290,7 +282,7 @@ try:
                                 <div>
                                     <span class='score-badge'>🎯 Proximity: {book['score']:.4f}</span>
                                 </div>
-                                <a href='{search_url}' target='_blank' class='read-btn'>📖 Read Book</a>
+                                <a href='{search_url}' target='_blank' class='read-btn'>📖 View Book</a>
                             </div>
                         """, unsafe_allow_html=True)
             else:
