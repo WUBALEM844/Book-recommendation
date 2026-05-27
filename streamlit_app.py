@@ -5,43 +5,38 @@ from app import BookRecommender
 import os
 
 # ==============================================================================
-# DIRECT AMHARIC FULL PDF BOOKS DATABASE (EMBEDDED INTERNAL READER)
+# AUTOMATIC AMHARIC BOOKS INJECTOR
 # ==============================================================================
-amharic_library = {
-    "AMH001": {
-        "title": "ፍቅር እስከ መቃብር", 
-        "author": "ሐዲስ አለማየሁ", 
-        "pdf_url": "https://www.oromalibrary.com/wp-content/uploads/2021/04/Fikir-Eske-Mekabir.pdf",
-        "cover": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200"
-    },
-    "AMH002": {
-        "title": "ኦሮማይ", 
-        "author": "በአሉ ግርማ", 
-        "pdf_url": "https://ia801606.us.archive.org/21/items/oromay_202206/oromay.pdf",
-        "cover": "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=200"
-    }
-}
-
 def inject_amharic_masterpieces():
     books_path = "book-dataset/Books.csv"
     if os.path.exists(books_path):
         try:
+            # Read current dataset with UTF-8 encoding safely
             df = pd.read_csv(books_path, low_memory=False, encoding="utf-8")
+            
+            # Check if Amharic books already exist to avoid duplicate injection
             if not df["ISBN"].str.contains("AMH001", na=False).any():
-                amharic_rows = [
-                    {"ISBN": k, "Book-Title": v["title"], "Book-Author": v["author"], "Year-Of-Publication": 1980, "Publisher": "Local"}
-                    for k, v in amharic_library.items()
+                amharic_books = [
+                    {"ISBN": "AMH001", "Book-Title": "ፍቅር እስከ መቃብር", "Book-Author": "ሐዲስ አለማየሁ", "Year-Of-Publication": 1965, "Publisher": "Berhanena Selam"},
+                    {"ISBN": "AMH002", "Book-Title": "የእኔ ማስታወሻ", "Book-Author": "ስብሐት ገብረእግዚአብሔር", "Year-Of-Publication": 2001, "Publisher": "Mega Publishing"},
+                    {"ISBN": "AMH003", "Book-Title": "የሐበሻ ጀብዱ", "Book-Author": "ይልማ ደሬሳ", "Year-Of-Publication": 1970, "Publisher": "Artistic Printing Press"}
                 ]
-                updated_df = pd.concat([df, pd.DataFrame(amharic_rows)], ignore_index=True)
+                amharic_df = pd.DataFrame(amharic_books)
+                # Concatenate and save back tightly using forced UTF-8
+                updated_df = pd.concat([df, amharic_df], ignore_index=True)
                 updated_df.to_csv(books_path, index=False, encoding="utf-8")
         except Exception:
+            # Fallback silently if there's any file access glitch during boot
             pass
 
+# Run the injector before starting the app pipeline
 inject_amharic_masterpieces()
 # ==============================================================================
 
+# Page Configuration
 st.set_page_config(page_title="Smart Book Recommendation System", page_icon="📚", layout="wide")
 
+# Initialize and Cache the Recommender Engine for ultra-fast load
 @st.cache_resource
 def load_recommender():
     engine = BookRecommender()
@@ -51,132 +46,219 @@ def load_recommender():
 try:
     recommender = load_recommender()
     
+    # Sidebar Selection
     st.sidebar.header("⚙️ Control Panel")
+    
+    # Theme Configuration
     theme_choice = st.sidebar.selectbox("🎨 App Interface Theme:", ["Light Mode ☀️", "Dark Mode 🌙"])
     
+    # Set dynamic colors based on theme selection
     if theme_choice == "Dark Mode 🌙":
-        bg_color = "#0B0F19"; card_bg = "#111827"; text_main = "#F9FAFB"; text_sub = "#9CA3AF"; border_color = "#374151"
+        bg_color = "#0B0F19"       
+        card_bg = "#111827"        
+        text_main = "#F9FAFB"      
+        text_sub = "#9CA3AF"       
+        border_color = "#374151"   
+        badge_bg = "#1E1B4B"       
+        badge_text = "#C7D2FE"     
+        input_info = "#1F2937"     
     else:
-        bg_color = "#F8FAFC"; card_bg = "#FFFFFF"; text_main = "#0F172A"; text_sub = "#64748B"; border_color = "#E2E8F0"
+        bg_color = "#F8FAFC"       
+        card_bg = "#FFFFFF"        
+        text_main = "#0F172A"      
+        text_sub = "#64748B"       
+        border_color = "#E2E8F0"   
+        badge_bg = "#FEF3C7"       
+        badge_text = "#B45309"     
+        input_info = "#EFF6FF"     
 
+    # Premium Modern UI Styling
     st.markdown(f"""
         <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        #MainMenu {{visibility: hidden;}}
+        footer {{visibility: hidden;}}
+        header {{visibility: hidden;}}
+        .stDeployButton {{display:none !important;}}
+        * {{ font-family: 'Inter', sans-serif; }}
         .stApp {{ background-color: {bg_color} !important; color: {text_main} !important; }}
-        .rec-grid-card {{ background: {card_bg}; border: 1px solid {border_color}; padding: 16px; border-radius: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 440px; margin-bottom: 20px; }}
-        .img-container {{ height: 180px; overflow: hidden; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; background: {border_color}; }}
+        .main-title {{ font-size: 38px !important; font-weight: 800; color: {text_main}; text-align: center; margin-bottom: 5px; letter-spacing: -0.5px; }}
+        .sub-title {{ font-size: 15px; color: {text_sub}; text-align: center; margin-bottom: 35px; }}
+        h3 {{ color: {text_main} !important; }}
+        .history-card {{ background: {card_bg}; padding: 16px; border-radius: 12px; border: 1px solid {border_color}; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }}
+        .history-title {{ font-size: 16px !important; font-weight: 600; color: {text_main}; }}
+        .history-author {{ font-size: 13px; color: {text_sub}; margin-top: 2px; }}
+        .rating-badge {{ display: inline-flex; align-items: center; background-color: {badge_bg}; color: {badge_text}; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 10px; }}
+        .rec-grid-card {{ background: {card_bg}; border: 1px solid {border_color}; padding: 16px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; height: 460px; margin-bottom: 20px; }}
+        .img-container {{ height: 200px; overflow: hidden; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; background: {border_color}; }}
         .img-container img {{ max-height: 100%; object-fit: cover; }}
-        .rec-title {{ font-size: 16px !important; font-weight: 700; color: {text_main}; height: 42px; overflow: hidden; }}
-        .rec-author {{ font-size: 13px; color: {text_sub}; }}
-        .score-badge {{ font-size: 12px; color: #059669; font-weight: 600; background: #ECFDF5; padding: 4px 8px; border-radius: 6px; display: inline-block; }}
-        .read-btn {{ display: block; text-align: center; margin-top: auto; padding: 10px 16px; background-color: #2563EB; color: white !important; text-decoration: none; border-radius: 10px; font-size: 13px; font-weight: 600; }}
+        .rec-title {{ font-size: 16px !important; font-weight: 700; color: {text_main}; line-height: 1.3; height: 42px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }}
+        .rec-author {{ font-size: 13px; color: {text_sub}; margin-top: 4px; height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+        .score-badge {{ font-size: 12px; color: #059669; font-weight: 600; background: #ECFDF5; padding: 4px 8px; border-radius: 6px; display: inline-block; margin-top: 8px; }}
+        .read-btn {{ display: block; text-align: center; margin-top: auto; padding: 10px 16px; background-color: #2563EB; color: white !important; text-decoration: none; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 4px rgba(37,99,235,0.2); transition: all 0.2s ease; }}
+        .read-btn:hover {{ background-color: #1D4ED8; box-shadow: 0 4px 8px rgba(29,78,216,0.3); text-decoration: none; }}
+        .info-msg {{ background-color: {input_info}; color: {text_main}; padding: 15px; border-radius: 10px; font-size: 14px; margin-bottom: 15px; border-left: 4px solid #3B82F6; }}
         </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<h1 style="text-align: center;">📚 Smart Book Recommendation System</h1>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">📚 Smart Book Recommendation System</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-title">This core engine evaluates multi-dimensional vector spaces using AI Cosine Similarity metrics to deliver dynamic suggestions.</div>', unsafe_allow_html=True)
     st.markdown("---")
 
     if "custom_ratings" not in st.session_state:
         st.session_state.custom_ratings = {}
-    if "active_pdf_url" not in st.session_state:
-        st.session_state.active_pdf_url = None
-    if "active_pdf_title" not in st.session_state:
-        st.session_state.active_pdf_title = None
 
-    # THE INTERNAL PDF EMBEDDED VIEWER (OPENS AMHARIC FULL BOOK ON SCREEN!)
-    if st.session_state.active_pdf_url:
-        st.markdown(f"### 📖 አሁን እያነበቡት ነው፦ **{st.session_state.active_pdf_title}**")
-        if st.button("❌ መጽሐፉን ዝጋ (Close Book)"):
-            st.session_state.active_pdf_url = None
-            st.session_state.active_pdf_title = None
-            st.rerun()
-            
-        st.markdown(f"""
-            <iframe src="{st.session_state.active_pdf_url}" width="100%" height="800px" style="border: none; border-radius: 12px;">
-                Your browser does not support iFrames. <a href="{st.session_state.active_pdf_url}">Click here to download PDF</a>
-            </iframe>
-        """, unsafe_allow_html=True)
-        st.markdown("---")
-
-    st.sidebar.markdown("---")
     mode = st.sidebar.radio("Operational Mode:", ["Simulate Dataset User", "Dynamic New User Profile"])
 
     if mode == "Simulate Dataset User":
-        selected_user = st.sidebar.selectbox("Select User ID:", sorted(recommender.ratings_df["User-ID"].unique()))
-        user_books = pd.merge(recommender.ratings_df[recommender.ratings_df["User-ID"] == selected_user], recommender.books_df, on="ISBN")
+        available_users = sorted(recommender.ratings_df["User-ID"].unique())
+        selected_user = st.sidebar.selectbox("Select User ID from Dataset:", available_users)
+        
+        user_ratings = recommender.ratings_df[recommender.ratings_df["User-ID"] == selected_user]
+        user_books = pd.merge(user_ratings, recommender.books_df, on="ISBN")
     else:
         selected_user = 9999  
-        search_query = st.sidebar.text_input("Search Book Title:", "")
-        all_titles = list(recommender.books_df["Book-Title"].dropna().unique()) + [v["title"] for v in amharic_library.values()]
-        filtered = [b for b in all_titles if search_query.strip().lower() in str(b).lower()] if search_query else []
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("🔍 Search Local & Global Books")
         
-        if filtered:
-            chosen = st.sidebar.selectbox("Select Book:", filtered)
-            rating = st.sidebar.slider("Rating (⭐):", 1, 10, 8)
-            if st.sidebar.button("Add to Profile"):
-                isbn = next((k for k, v in amharic_library.items() if v["title"] == chosen), None) or recommender.books_df[recommender.books_df["Book-Title"] == chosen]["ISBN"].values[0]
-                st.session_state.custom_ratings[isbn] = rating
-                st.sidebar.success("📌 Added!")
+        search_query = st.sidebar.text_input("Enter Book Title:", "")
+        
+        # Get Titles and add fallback mechanism for Unicode matching
+        all_books_list = list(recommender.books_df["Book-Title"].dropna().unique())
+        
+        local_masterpieces = ["ፍቅር እስከ መቃብር", "የእኔ ማስታወሻ", "የሐበሻ ጀብዱ"]
+        for masterpiece in local_masterpieces:
+            if masterpiece not in all_books_list:
+                all_books_list.append(masterpiece)
+        
+        filtered_books = []
+        if search_query:
+            clean_query = search_query.strip().lower()
+            for b in all_books_list:
+                if clean_query in str(b).lower():
+                    filtered_books.append(str(b))
+        
+        if filtered_books:
+            chosen_book_title = st.sidebar.selectbox("Select Target Book from Results:", filtered_books)
+            rating_value = st.sidebar.slider("Your Explicit Rating (⭐):", 1, 10, 8)
+            
+            if st.sidebar.button("Add Rating to Profile"):
+                try:
+                    chosen_isbn = recommender.books_df[recommender.books_df["Book-Title"] == chosen_book_title]["ISBN"].values[0]
+                except IndexError:
+                    if chosen_book_title == "ፍቅር እስከ መቃብር": chosen_isbn = "AMH001"
+                    elif chosen_book_title == "የእኔ ማስታወሻ": chosen_isbn = "AMH002"
+                    else: chosen_isbn = "AMH003"
+                    
+                st.session_state.custom_ratings[chosen_isbn] = rating_value
+                st.sidebar.success(f"📌 '{chosen_book_title}' successfully registered to profile!")
+        elif search_query:
+            st.sidebar.caption("❌ No matching titles found in vector spectrum")
 
-        user_books = pd.DataFrame([
-            {"User-ID": 9999, "ISBN": isbn, "Book-Rating": rate, "Book-Title": next((v["title"] for k, v in amharic_library.items() if k == isbn), recommender.books_df[recommender.books_df["ISBN"] == isbn]["Book-Title"].values[0])}
-            for isbn, rate in st.session_state.custom_ratings.items()
-        ]) if st.session_state.custom_ratings else pd.DataFrame()
+        if st.session_state.custom_ratings and st.sidebar.button("Reset Active Profile"):
+            st.session_state.custom_ratings = {}
+            st.rerun()
+
+        custom_rows = []
+        for isbn, rate in st.session_state.custom_ratings.items():
+            local_metadata = {
+                "AMH001": {"title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ"},
+                "AMH002": {"title": "የእኔ ማስታወሻ", "author": "ስብሐት ገብረእግዚአብሔር"},
+                "AMH003": {"title": "የሐበሻ ጀብዱ", "author": "ይልማ ደሬሳ"}
+            }
+            
+            if isbn in local_metadata:
+                custom_rows.append({
+                    "User-ID": selected_user, "ISBN": isbn, "Book-Rating": rate,
+                    "Book-Title": local_metadata[isbn]["title"], "Book-Author": local_metadata[isbn]["author"]
+                })
+            else:
+                b_row = recommender.books_df[recommender.books_df["ISBN"] == isbn]
+                if not b_row.empty:
+                    custom_rows.append({
+                        "User-ID": selected_user, "ISBN": isbn, "Book-Rating": rate,
+                        "Book-Title": b_row["Book-Title"].values[0],
+                        "Book-Author": b_row["Book-Author"].values[0] if "Book-Author" in b_row.columns else "Unknown"
+                    })
+        user_books = pd.DataFrame(custom_rows)
 
         if not user_books.empty:
-            recommender.ratings_df = pd.concat([recommender.ratings_df[recommender.ratings_df["User-ID"] != 9999], user_books[["User-ID", "ISBN", "Book-Rating"]]], ignore_index=True)
-            recommender.prepare_matrices(); recommender.train()
+            recommender.ratings_df = recommender.ratings_df[recommender.ratings_df["User-ID"] != 9999]
+            recommender.ratings_df = pd.concat([recommender.ratings_df, user_books[["User-ID", "ISBN", "Book-Rating"]]], ignore_index=True)
+            recommender.prepare_matrices()
+            recommender.train()
 
-    num_recommendations = st.sidebar.slider("Recommendations Count:", 1, 10, 5)
+    num_recommendations = st.sidebar.slider("Number of Recommendations:", min_value=1, max_value=10, value=5)
+
+    # Main UI Layout Columns
     col1, col2 = st.columns([1, 2], gap="large")
 
     with col1:
-        st.subheader("📖 Interaction History")
+        st.subheader("📖 User Interaction History")
         if not user_books.empty:
-            for _, row in user_books.iterrows():
-                st.write(f"🔹 **{row['Book-Title']}** (⭐ {row['Book-Rating']}/10)")
+            for idx, row in user_books.iterrows():
+                st.markdown(f"""
+                    <div class='history-card'>
+                        <div class='history-title'>🔹 {row['Book-Title']}</div>
+                        <div class='history-author'>Author: {row['Book-Author']}</div>
+                        <div class='rating-badge'>⭐ Score: {row['Book-Rating']} / 10</div>
+                    </div>
+                """, unsafe_allow_html=True)
         else:
-            st.info("No active history.")
+            st.markdown("<div class='info-msg'>💡 Please search and rate books on the left panel to populate your active profile matrix.</div>", unsafe_allow_html=True)
 
     with col2:
-        st.subheader("✨ AI Recommendations")
-        if mode == "Dynamic New User Profile" and user_books.empty:
-            st.info("Provide at least one rating.")
+        st.subheader("✨ Personalized AI Recommendations")
+        
+        if mode == "Dynamic New User Profile" and len(st.session_state.custom_ratings) == 0:
+            st.markdown("<div class='info-msg'>👋 Provide at least one book rating on the control panel to engage the computation matrix.</div>", unsafe_allow_html=True)
         else:
-            recommendations = recommender.recommend_books(user_id=int(selected_user), top_n=num_recommendations)
+            with st.spinner("Executing dynamic matrix computations..."):
+                recommendations = recommender.recommend_books(user_id=int(selected_user), top_n=num_recommendations)
+                
             if recommendations:
                 cols = st.columns(3)
                 for i, book in enumerate(recommendations):
                     col_idx = i % 3
                     with cols[col_idx]:
-                        cover_image = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150"
+                        fallback_cover = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150&auto=format&fit=crop&q=60"
                         
-                        amh_key = None
-                        for k, v in amharic_library.items():
-                            if book['title'] == v["title"]:
-                                amh_key = k
-                                cover_image = v["cover"]
-                                break
+                        if "Harry Potter" in book['title']:
+                            fallback_cover = "https://images.unsplash.com/photo-1618666012174-83b441c0bc76?w=150&auto=format&fit=crop&q=60"
+                        elif "Hobbit" in book['title'] or "1984" in book['title']:
+                            fallback_cover = "https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=150&auto=format&fit=crop&q=60"
+                        elif "Gatsby" in book['title']:
+                            fallback_cover = "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=150&auto=format&fit=crop&q=60"
+                        elif "Sapiens" in book['title'] or "Educated" in book['title']:
+                            fallback_cover = "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=150&auto=format&fit=crop&q=60"
+
+                        clean_title = book['title'].split(" Vol")[0].replace(' ', '+')
+                        
+                        # Direct reading redirection for Amharic masterpieces
+                        if book['title'] == "ፍቅር እስከ መቃብር":
+                            search_url = "https://archive.org/details/fiqir-eske-meqabir"
+                        elif book['title'] == "የእኔ ማስታወሻ":
+                            search_url = "https://www.goodreads.com/book/show/24434720"
+                        elif book['title'] == "የሐበሻ ጀብዱ":
+                            search_url = "https://www.goodreads.com/book/show/53912190"
+                        else:
+                            search_url = f"https://openlibrary.org/search?q={clean_title}"
 
                         st.markdown(f"""
                             <div class='rec-grid-card'>
-                                <div class='img-container'><img src='{cover_image}'></div>
+                                <div class='img-container'>
+                                    <img src='{fallback_cover}'>
+                                </div>
                                 <div class='rec-title'>{book['title']}</div>
-                                <div class='rec-author'>By: {book['author']}</div>
-                                <div><span class='score-badge'>🎯 Score: {book['score']:.4f}</span></div>
+                                <div class='rec-author'>Author: {book['author']}</div>
+                                <div>
+                                    <span class='score-badge'>🎯 Proximity: {book['score']:.4f}</span>
+                                </div>
+                                <a href='{search_url}' target='_blank' class='read-btn'>📖 Read Book</a>
                             </div>
                         """, unsafe_allow_html=True)
-                        
-                        if amh_key:
-                            if st.button(f"📖 ሙሉውን መጽሐፍ እዚሁ አንብብ", key=f"amh_pdf_btn_{i}"):
-                                st.session_state.active_pdf_url = amharic_library[amh_key]["pdf_url"]
-                                st.session_state.active_pdf_title = amharic_library[amh_key]["title"]
-                                st.rerun()
-                        else:
-                            clean_title = book['title'].split(" Vol")[0].replace(' ', '+')
-                            open_library_url = f"https://openlibrary.org/search?q={clean_title}"
-                            st.markdown(f"<a href='{open_library_url}' target='_blank' class='read-btn'>📖 Open Library</a>", unsafe_allow_html=True)
             else:
-                st.info("No correlation matches.")
+                st.info("No correlation matches located for this target profile.")
 
 except Exception as e:
-    st.error(f"Error: {e}")
+    st.error(f"Application Initialization Error: {e}")
