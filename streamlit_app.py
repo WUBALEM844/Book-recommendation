@@ -225,7 +225,8 @@ try:
         if mode == "Dynamic New User Profile" and len(st.session_state.custom_ratings) == 0:
             st.markdown("<div class='info-msg'>👋 Provide at least one book rating.</div>", unsafe_allow_html=True)
         else:
-            with St.spinner("Executing dynamic matrix computations..."):
+            # FIXED HERE: Changed 'St.spinner' to 'st.spinner' (lower case 's')
+            with st.spinner("Executing dynamic matrix computations..."):
                 recommendations = recommender.recommend_books(user_id=int(selected_user), top_n=num_recommendations)
                 
             if recommendations:
