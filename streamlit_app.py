@@ -150,7 +150,6 @@ try:
                     with cols[col_idx]:
                         cover_image = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150"
                         
-                        # የአማርኛ መጽሐፍ መሆኑን ማረጋገጫ
                         amh_key = None
                         for k, v in amharic_library.items():
                             if book['title'] == v["title"]:
@@ -167,8 +166,17 @@ try:
                             </div>
                         """, unsafe_allow_html=True)
                         
-                        # የአማርኛ ከሆነ አፕሊኬሽኑ ውስጥ ይከፍተዋል፤ እንግሊዘኛ ከሆነ ልክ እንደነበረው ወደ OpenLibrary ይልካል!
                         if amh_key:
                             if st.button(f"📖 ሙሉውን መጽሐፍ እዚሁ አንብብ", key=f"amh_pdf_btn_{i}"):
                                 st.session_state.active_pdf_url = amharic_library[amh_key]["pdf_url"]
-                                st.session_state.active_pdf_title = amharic_library[amh_key]["title"]   
+                                st.session_state.active_pdf_title = amharic_library[amh_key]["title"]
+                                st.rerun()
+                        else:
+                            clean_title = book['title'].split(" Vol")[0].replace(' ', '+')
+                            open_library_url = f"https://openlibrary.org/search?q={clean_title}"
+                            st.markdown(f"<a href='{open_library_url}' target='_blank' class='read-btn'>📖 Open Library</a>", unsafe_allow_html=True)
+            else:
+                st.info("No correlation matches.")
+
+except Exception as e:
+    st.error(f"Error: {e}")
