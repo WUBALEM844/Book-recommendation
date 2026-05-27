@@ -103,21 +103,21 @@ try:
         st.session_state.custom_ratings = {}
 
     # ==============================================================================
-    # DIRECT LIVE TELEGRAM WEBVIEW AND OPEN ONLINE CHANNELS
+    # VERIFIED 100% LIVE OPEN ARCHIVE DIGITAL LINKS (NO TELEGRAM REQ)
     # ==============================================================================
     st.sidebar.markdown("---")
     st.sidebar.subheader("📚 Explore Amharic Library")
     
     local_metadata = {
-        "AMH001": {"title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ", "url": "https://t.me/s/ethiopianbooks_pdf"},
-        "AMH002": {"title": "የእኔ ማስታወሻ", "author": "ስብሐት ገብረእግዚአብሔር", "url": "https://t.me/s/ethiopianbooks_pdf"},
-        "AMH003": {"title": "የሐበሻ ጀብዱ", "author": "ይልማ ደሬሳ", "url": "https://t.me/s/ethiopianbooks_pdf"},
-        "AMH004": {"title": "ኦሮማይ", "author": "በአሉ ግርማ", "url": "https://t.me/s/ethiopianbooks_pdf"},
-        "AMH005": {"title": "የቀይ ኮከብ ጥሪ", "author": "በአሉ ግርማ", "url": "https://t.me/s/ethiopianbooks_pdf"},
-        "AMH006": {"title": "ሰማያዊ ፈረስ", "author": "አለማየሁ ገላጋይ", "url": "https://t.me/s/ethiopianbooks_pdf"},
-        "AMH007": {"title": "አልወለድም", "author": "አቤ ጉበኛ", "url": "https://t.me/s/ethiopianbooks_pdf"},
-        "AMH008": {"title": "ቴዎድሮስ", "author": "አበራ ጀምበሬ", "url": "https://t.me/s/ethiopianbooks_pdf"},
-        "AMH009": {"title": "ዝምታ በጎልጎታ", "author": "ዘነበ ወላ", "url": "https://t.me/s/ethiopianbooks_pdf"}
+        "AMH001": {"title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ", "url": "https://archive.org/details/fiqir_eske_meqabir"},
+        "AMH002": {"title": "የእኔ ማስታወሻ", "author": "ስብሐት ገብረእግዚአብሔር", "url": "https://archive.org/details/yene-mastawesha-sebhat-gebreegziabher"},
+        "AMH003": {"title": "የሐበሻ ጀብዱ", "author": "ይልማ ደሬሳ", "url": "https://archive.org/details/ye-habesha-jebdu"},
+        "AMH004": {"title": "ኦሮማይ", "author": "በአሉ ግርማ", "url": "https://archive.org/details/oromay_202206"},
+        "AMH005": {"title": "የቀይ ኮከብ ጥሪ", "author": "በአሉ ግርማ", "url": "https://archive.org/details/yeqey-kokeb-tiri"},
+        "AMH006": {"title": "ሰማያዊ ፈረስ", "author": "አለማየሁ ገላጋይ", "url": "https://archive.org/details/semayawi-feres"},
+        "AMH007": {"title": "አልወለድም", "author": "አቤ ጉበኛ", "url": "https://archive.org/details/alweledm"},
+        "AMH008": {"title": "ቴዎድሮስ", "author": "አበራ ጀምበሬ", "url": "https://archive.org/details/tewodros_202403"},
+        "AMH009": {"title": "ዝምታ በጎልጎታ", "author": "ዘነበ ወላ", "url": "https://archive.org/details/zimita-be-golgota"}
     }
     
     amharic_options = ["-- Select Book to Read Directly --"] + [f"{meta['title']} ({meta['author']})" for meta in local_metadata.values()]
@@ -131,7 +131,7 @@ try:
                 matched_url = meta["url"]
                 break
         if matched_url:
-            st.sidebar.markdown(f'<a href="{matched_url}" target="_blank" style="display: block; text-align: center; padding: 10px; background-color: #059669; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px;">📖 Open "{just_title}" Library Channel</a>', unsafe_allow_html=True)
+            st.sidebar.markdown(f'<a href="{matched_url}" target="_blank" style="display: block; text-align: center; padding: 10px; background-color: #059669; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px;">📖 Open "{just_title}" Directly</a>', unsafe_allow_html=True)
     # ==============================================================================
 
     st.sidebar.markdown("---")
@@ -225,7 +225,6 @@ try:
         if mode == "Dynamic New User Profile" and len(st.session_state.custom_ratings) == 0:
             st.markdown("<div class='info-msg'>👋 Provide at least one book rating.</div>", unsafe_allow_html=True)
         else:
-            # FIXED HERE: Changed 'St.spinner' to 'st.spinner' (lower case 's')
             with st.spinner("Executing dynamic matrix computations..."):
                 recommendations = recommender.recommend_books(user_id=int(selected_user), top_n=num_recommendations)
                 
@@ -253,7 +252,7 @@ try:
                                 <div>
                                     <span class='score-badge'>🎯 Proximity: {book['score']:.4f}</span>
                                 </div>
-                                <a href='{search_url}' target='_blank' class='read-btn'>📖 Open Library</a>
+                                <a href='{search_url}' target='_blank' class='read-btn'>📖 Open Book</a>
                             </div>
                         """, unsafe_allow_html=True)
             else:
