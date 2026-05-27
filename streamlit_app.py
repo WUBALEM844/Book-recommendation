@@ -5,8 +5,31 @@ from app import BookRecommender
 import os
 
 # ==============================================================================
-# AUTOMATIC AMHARIC BOOKS INJECTOR WITH COVERS & STABLE RESOURCE ENDPOINTS
+# EASY AMHARIC DATA & STORIES (INTERNAL - NO EXTERNAL LINKS TO BREAK!)
 # ==============================================================================
+local_metadata = {
+    "AMH001": {
+        "title": "Clean ፍቅር እስከ መቃብር", 
+        "author": "ሐዲስ አለማየሁ", 
+        "story": "ፍቅር እስከ መቃብር በኢትዮጵያ ሥነ-ጽሑፍ ውስጥ ትልቅ ቦታ ያለውና የቦጋለ እና የሰበላን እውነተኛ ፍቅር፣ የህብረተሰቡን የክፍፍል ባህል የሚተርክ ድንቅ መጽሐፍ ነው።"
+    },
+    "AMH002": {
+        "title": "የእኔ ማስታወሻ", 
+        "author": "ስብሐት ገብረእግዚአብሔር", 
+        "story": "የደራሲ ስብሐት ገብረእግዚአብሔር ሕይወት፣ ፍልስፍና እና የዕለት ተዕለት ትዝታዎች ግልጽ እና ማራኪ በሆነ የቋንቋ ስልት የተጻፈበት መጽሐፍ ነው።"
+    },
+    "AMH003": {
+        "title": "የሐበሻ ጀብዱ", 
+        "author": "ይልማ ደሬሳ", 
+        "story": "ስለ ኢትዮጵያ ታሪክ፣ ጀግንነት እና ማኅበራዊ ሕይወት ሰፊ ትንታኔ የሚሰጥ የታሪክ እና የሥነ-ጽሑፍ መጽሐፍ ነው።"
+    },
+    "AMH004": {
+        "title": "ኦሮማይ", 
+        "author": "በአሉ ግርማ", 
+        "story": "ኦሮማይ በበዓሉ ግርማ የተጻፈና በታሪካዊው የቀይ ኮከብ ዘመቻ ወቅት በኤርትራ የነበረውን እውነተኛ የፖለቲካ እና የማኅበራዊ ሕይወት ውጥረት የሚተርክ ድንቅ ልብወለድ ነው።"
+    }
+}
+
 def inject_amharic_masterpieces():
     books_path = "book-dataset/Books.csv"
     if os.path.exists(books_path):
@@ -14,18 +37,10 @@ def inject_amharic_masterpieces():
             df = pd.read_csv(books_path, low_memory=False, encoding="utf-8")
             if not df["ISBN"].str.contains("AMH001", na=False).any():
                 amharic_books = [
-                    {"ISBN": "AMH001", "Book-Title": "ፍቅር እስከ መቃብር", "Book-Author": "ሐዲስ አለማየሁ", "Year-Of-Publication": 1965, "Publisher": "Berhanena Selam"},
-                    {"ISBN": "AMH002", "Book-Title": "የእኔ ማስታወሻ", "Book-Author": "ስብሐት ገብረእግዚአብሔር", "Year-Of-Publication": 2001, "Publisher": "Mega Publishing"},
-                    {"ISBN": "AMH003", "Book-Title": "የሐበሻ ጀብዱ", "Book-Author": "ይልማ ደሬሳ", "Year-Of-Publication": 1970, "Publisher": "Artistic Printing Press"},
-                    {"ISBN": "AMH004", "Book-Title": "ኦሮማይ", "Book-Author": "በአሉ ግርማ", "Year-Of-Publication": 1983, "Publisher": "Kuraz"},
-                    {"ISBN": "AMH005", "Book-Title": "የቀይ ኮከብ ጥሪ", "Book-Author": "በአሉ ግርማ", "Year-Of-Publication": 1980, "Publisher": "Kuraz"},
-                    {"ISBN": "AMH006", "Book-Title": "ሰማያዊ ፈረስ", "Book-Author": "አለማየሁ ገላጋይ", "Year-Of-Publication": 2012, "Publisher": "Farfar"},
-                    {"ISBN": "AMH007", "Book-Title": "አልወለድም", "Book-Author": "አቤ ጉበኛ", "Year-Of-Publication": 1963, "Publisher": "Berhanena Selam"},
-                    {"ISBN": "AMH008", "Book-Title": "ቴዎድሮስ", "Book-Author": "አበራ ጀምበሬ", "Year-Of-Publication": 1993, "Publisher": "Mega"},
-                    {"ISBN": "AMH009", "Book-Title": "ዝምታ በጎልጎታ", "Book-Author": "ዘነበ ወላ", "Year-Of-Publication": 2002, "Publisher": "Unknown"}
+                    {"ISBN": k, "Book-Title": v["title"], "Book-Author": v["author"], "Year-Of-Publication": 1980, "Publisher": "Local"}
+                    for k, v in local_metadata.items()
                 ]
-                amharic_df = pd.DataFrame(amharic_books)
-                updated_df = pd.concat([df, amharic_df], ignore_index=True)
+                updated_df = pd.concat([df, pd.DataFrame(amharic_books)], ignore_index=True)
                 updated_df.to_csv(books_path, index=False, encoding="utf-8")
         except Exception:
             pass
@@ -33,7 +48,7 @@ def inject_amharic_masterpieces():
 inject_amharic_masterpieces()
 # ==============================================================================
 
-st.set_page_config(page_title="Smart Book Recommendation System", page_icon="📚", layout="wide")
+st.set_page_config(page_title="Smart Book System", page_icon="📚", layout="wide")
 
 @st.cache_resource
 def load_recommender():
@@ -44,257 +59,80 @@ def load_recommender():
 try:
     recommender = load_recommender()
     
-    st.sidebar.header("⚙️ Control Panel")
-    theme_choice = st.sidebar.selectbox("🎨 App Interface Theme:", ["Light Mode ☀️", "Dark Mode 🌙"])
-    
-    if theme_choice == "Dark Mode 🌙":
-        bg_color = "#0B0F19"       
-        card_bg = "#111827"        
-        text_main = "#F9FAFB"      
-        text_sub = "#9CA3AF"       
-        border_color = "#374151"   
-        badge_bg = "#1E1B4B"       
-        badge_text = "#C7D2FE"     
-        input_info = "#1F2937"     
-    else:
-        bg_color = "#F8FAFC"       
-        card_bg = "#FFFFFF"        
-        text_main = "#0F172A"      
-        text_sub = "#64748B"       
-        border_color = "#E2E8F0"   
-        badge_bg = "#FEF3C7"       
-        badge_text = "#B45309"     
-        input_info = "#EFF6FF"     
-
-    st.markdown(f"""
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        #MainMenu {{visibility: hidden;}}
-        footer {{visibility: hidden;}}
-        header {{visibility: hidden;}}
-        .stDeployButton {{display:none !important;}}
-        * {{ font-family: 'Inter', sans-serif; }}
-        .stApp {{ background-color: {bg_color} !important; color: {text_main} !important; }}
-        .main-title {{ font-size: 38px !important; font-weight: 800; color: {text_main}; text-align: center; margin-bottom: 5px; letter-spacing: -0.5px; }}
-        .sub-title {{ font-size: 15px; color: {text_sub}; text-align: center; margin-bottom: 35px; }}
-        .history-card {{ background: {card_bg}; padding: 16px; border-radius: 12px; border: 1px solid {border_color}; margin-bottom: 12px; }}
-        .history-title {{ font-size: 16px !important; font-weight: 600; color: {text_main}; }}
-        .rating-badge {{ display: inline-flex; align-items: center; background-color: {badge_bg}; color: {badge_text}; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 10px; }}
-        .rec-grid-card {{ background: {card_bg}; border: 1px solid {border_color}; padding: 16px; border-radius: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 480px; margin-bottom: 20px; }}
-        .img-container {{ height: 220px; overflow: hidden; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; background: {border_color}; }}
-        .img-container img {{ max-height: 100%; object-fit: cover; border-radius: 6px; }}
-        .rec-title {{ font-size: 16px !important; font-weight: 700; color: {text_main}; line-height: 1.3; height: 42px; overflow: hidden; }}
-        .rec-author {{ font-size: 13px; color: {text_sub}; margin-top: 4px; }}
-        .score-badge {{ font-size: 12px; color: #059669; font-weight: 600; background: #ECFDF5; padding: 4px 8px; border-radius: 6px; display: inline-block; margin-top: 8px; }}
-        .read-btn {{ display: block; text-align: center; margin-top: auto; padding: 12px 16px; background-color: #2563EB; color: white !important; text-decoration: none; border-radius: 10px; font-size: 14px; font-weight: 600; }}
-        .read-btn-amh {{ background-color: #059669 !important; }}
-        .info-msg {{ background-color: {input_info}; color: {text_main}; padding: 15px; border-radius: 10px; font-size: 14px; margin-bottom: 15px; border-left: 4px solid #3B82F6; }}
-        </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown('<div class="main-title">📚 Smart Book Recommendation System</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-title">This core engine evaluates multi-dimensional vector spaces using AI Cosine Similarity metrics to deliver dynamic suggestions.</div>', unsafe_allow_html=True)
+    st.markdown('<h1 style="text-align:center; color:#2563EB;">📚 Smart Book Recommendation System</h1>', unsafe_allow_html=True)
     st.markdown("---")
 
     if "custom_ratings" not in st.session_state:
         st.session_state.custom_ratings = {}
 
-    # ==============================================================================
-    # 100% WORKING RESOURCE PATHS - BALANCED GLOBAL CATALOG INDEX
-    # ==============================================================================
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("📚 Explore Amharic Library")
+    # SIDEBAR - READ INTERNAL BOOK STORIES IMMEDIATELY
+    st.sidebar.header("📖 Read Amharic Books")
+    selected_book = st.sidebar.selectbox("እዚህ አፕ ላይ ማንበብ የሚፈልጉትን መጽሐፍ ይምረጡ:", ["-- ይምረጡ --"] + [v["title"] for v in local_metadata.values()])
     
-    local_metadata = {
-        "AMH001": {
-            "title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ", 
-            "url": "https://archive.org/details/fiqir_eske_meqabir",
-            "cover": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200"
-        },
-        "AMH002": {
-            "title": "የእኔ ማስታወሻ", "author": "ስብሐት ገብረእግዚአብሔር", 
-            "url": "https://openlibrary.org/search?q=Sebhat+Gebre-Egziabher",
-            "cover": "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200"
-        },
-        "AMH003": {
-            "title": "የሐበሻ ጀብዱ", "author": "ይልማ ደሬሳ", 
-            "url": "https://openlibrary.org/search?q=Yilma+Deressa",
-            "cover": "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=200"
-        },
-        "AMH004": {
-            "title": "ኦሮማይ", "author": "በአሉ ግርማ", 
-            "url": "https://archive.org/details/oromay_202206",
-            "cover": "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=200"
-        },
-        "AMH005": {
-            "title": "የቀይ ኮከብ ጥሪ", "author": "በአሉ ግርማ", 
-            "url": "https://openlibrary.org/search?q=Baalu+Girma",
-            "cover": "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=200"
-        },
-        "AMH006": {
-            "title": "ሰማያዊ ፈረስ", "author": "አለማየሁ ገላጋይ", 
-            "url": "https://openlibrary.org/search?q=Alemayehu+Gelagay",
-            "cover": "https://images.unsplash.com/photo-1495640388908-05fa85288e61?w=200"
-        },
-        "AMH007": {
-            "title": "አልወለድም", "author": "አቤ ጉበኛ", 
-            "url": "https://openlibrary.org/search?q=Abe+Gubenya",
-            "cover": "https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=200"
-        },
-        "AMH008": {
-            "title": "ቴዎድሮስ", "author": "አበራ ጀምበሬ", 
-            "url": "https://openlibrary.org/authors/OL501655A/Aberra_Jemberre",
-            "cover": "https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=200"
-        },
-        "AMH009": {
-            "title": "ዝምታ በጎልጎታ", "author": "ዘነበ ወላ", 
-            "url": "https://openlibrary.org/search?q=Zenebe+Wela",
-            "cover": "https://images.unsplash.com/photo-1511108690759-009324a90311?w=200"
-        }
-    }
-    
-    amharic_options = ["-- Select Book to Read Directly --"] + [f"{meta['title']} ({meta['author']})" for meta in local_metadata.values()]
-    selected_amharic_dropdown = st.sidebar.selectbox("Choose a book to open instantly:", amharic_options)
-    
-    if selected_amharic_dropdown != "-- Select Book to Read Directly --":
-        just_title = selected_amharic_dropdown.split(" (")[0]
-        matched_url = ""
-        for meta in local_metadata.values():
-            if meta["title"] == just_title:
-                matched_url = meta["url"]
-                break
-        if matched_url:
-            st.sidebar.markdown(f'<a href="{matched_url}" target="_blank" style="display: block; text-align: center; padding: 10px; background-color: #059669; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px;">📖 Explore "{just_title}"</a>', unsafe_allow_html=True)
-    # ==============================================================================
+    if selected_book != "-- ይምረጡ --":
+        for v in local_metadata.values():
+            if v["title"] == selected_book:
+                st.sidebar.info(f"✍️ **ደራሲ:** {v['author']}\n\n📖 **ስለ መጽሐፉ:** {v['story']}")
 
     st.sidebar.markdown("---")
-    mode = st.sidebar.radio("Operational Mode:", ["Simulate Dataset User", "Dynamic New User Profile"])
+    mode = st.sidebar.radio("የተጠቃሚ ሁኔታ (Mode):", ["Simulate Dataset User", "Dynamic New User Profile"])
 
     if mode == "Simulate Dataset User":
-        available_users = sorted(recommender.ratings_df["User-ID"].unique())
-        selected_user = st.sidebar.selectbox("Select User ID from Dataset:", available_users)
-        user_ratings = recommender.ratings_df[recommender.ratings_df["User-ID"] == selected_user]
-        user_books = pd.merge(user_ratings, recommender.books_df, on="ISBN")
+        selected_user = st.sidebar.selectbox("User ID ካለው ዳታሴት ይምረጡ:", sorted(recommender.ratings_df["User-ID"].unique()))
+        user_books = pd.merge(recommender.ratings_df[recommender.ratings_df["User-ID"] == selected_user], recommender.books_df, on="ISBN")
     else:
-        selected_user = 9999  
-        st.sidebar.markdown("---")
-        st.sidebar.subheader("🔍 Search Local & Global Books")
+        selected_user = 9999
+        search_query = st.sidebar.text_input("የመጽሐፍ ርዕስ ይፈልጉ:", "")
+        all_titles = list(recommender.books_df["Book-Title"].dropna().unique()) + [v["title"] for v in local_metadata.values()]
         
-        search_query = st.sidebar.text_input("Enter Book Title:", "")
-        all_books_list = list(recommender.books_df["Book-Title"].dropna().unique())
+        filtered = [b for b in all_titles if search_query.strip().lower() in str(b).lower()] if search_query else []
         
-        local_masterpieces = [meta["title"] for meta in local_metadata.values()]
-        for masterpiece in local_masterpieces:
-            if masterpiece not in all_books_list:
-                all_books_list.append(masterpiece)
+        if filtered:
+            chosen = st.sidebar.selectbox("መጽሐፉን ከዝርዝሩ ውስጥ ይምረጡ:", filtered)
+            rating = st.sidebar.slider("ደረጃ ይስጡ (⭐):", 1, 10, 8)
+            if st.sidebar.button("ወደ ፕሮፋይል ጨምር"):
+                isbn = next((k for k, v in local_metadata.items() if v["title"] == chosen), None) or recommender.books_df[recommender.books_df["Book-Title"] == chosen]["ISBN"].values[0]
+                st.session_state.custom_ratings[isbn] = rating
+                st.sidebar.success(f"📌 '{chosen}' ተመዝግቧል!")
         
-        filtered_books = []
-        if search_query:
-            clean_query = search_query.strip().lower()
-            for b in all_books_list:
-                if clean_query in str(b).lower():
-                    filtered_books.append(str(b))
-        
-        if filtered_books:
-            chosen_book_title = st.sidebar.selectbox("Select Target Book from Results:", filtered_books)
-            rating_value = st.sidebar.slider("Your Explicit Rating (⭐):", 1, 10, 8)
-            
-            if st.sidebar.button("Add Rating to Profile"):
-                matched_isbn = "AMH001"
-                for key, meta in local_metadata.items():
-                    if meta["title"] == chosen_book_title:
-                        matched_isbn = key
-                        break
-                chosen_isbn = matched_isbn if chosen_book_title in local_masterpieces else recommender.books_df[recommender.books_df["Book-Title"] == chosen_book_title]["ISBN"].values[0]
-                st.session_state.custom_ratings[chosen_isbn] = rating_value
-                st.sidebar.success(f"📌 '{chosen_book_title}' successfully registered!")
-        elif search_query:
-            st.sidebar.caption("❌ No matching titles found")
-
-        if st.session_state.custom_ratings and st.sidebar.button("Reset Active Profile"):
-            st.session_state.custom_ratings = {}
-            st.rerun()
-
-        custom_rows = []
-        for isbn, rate in st.session_state.custom_ratings.items():
-            if isbn in local_metadata:
-                custom_rows.append({
-                    "User-ID": selected_user, "ISBN": isbn, "Book-Rating": rate,
-                    "Book-Title": local_metadata[isbn]["title"], "Book-Author": local_metadata[isbn]["author"]
-                })
-            else:
-                b_row = recommender.books_df[recommender.books_df["ISBN"] == isbn]
-                if not b_row.empty:
-                    custom_rows.append({
-                        "User-ID": selected_user, "ISBN": isbn, "Book-Rating": rate,
-                        "Book-Title": b_row["Book-Title"].values[0], "Book-Author": b_row["Book-Author"].values[0]
-                    })
-        user_books = pd.DataFrame(custom_rows)
+        user_books = pd.DataFrame([
+            {"User-ID": 9999, "ISBN": isbn, "Book-Rating": rate, "Book-Title": next((v["title"] for k, v in local_metadata.items() if k == isbn), recommender.books_df[recommender.books_df["ISBN"] == isbn]["Book-Title"].values[0])}
+            for isbn, rate in st.session_state.custom_ratings.items()
+        ]) if st.session_state.custom_ratings else pd.DataFrame()
 
         if not user_books.empty:
-            recommender.ratings_df = recommender.ratings_df[recommender.ratings_df["User-ID"] != 9999]
-            recommender.ratings_df = pd.concat([recommender.ratings_df, user_books[["User-ID", "ISBN", "Book-Rating"]]], ignore_index=True)
-            recommender.prepare_matrices()
-            recommender.train()
+            recommender.ratings_df = pd.concat([recommender.ratings_df[recommender.ratings_df["User-ID"] != 9999], user_books[["User-ID", "ISBN", "Book-Rating"]]], ignore_index=True)
+            recommender.prepare_matrices(); recommender.train()
 
-    num_recommendations = st.sidebar.slider("Number of Recommendations:", min_value=1, max_value=10, value=5)
-    col1, col2 = st.columns([1, 2], gap="large")
-
+    # MAIN WINDOW DISPLAY
+    col1, col2 = st.columns([1, 2], gap="medium")
+    
     with col1:
-        st.subheader("📖 User Interaction History")
+        st.subheader("📖 የእርስዎ የታዩ መጻሕፍት")
         if not user_books.empty:
-            for idx, row in user_books.iterrows():
-                st.markdown(f"""
-                    <div class='history-card'>
-                        <div class='history-title'>🔹 {row['Book-Title']}</div>
-                        <div class='rating-badge'>⭐ Score: {row['Book-Rating']} / 10</div>
-                    </div>
-                """, unsafe_allow_html=True)
+            for _, row in user_books.iterrows():
+                st.write(f"🔹 **{row['Book-Title']}** — (⭐ {row['Book-Rating']}/10)")
         else:
-            st.markdown("<div class='info-msg'>💡 Please search and rate books on the left panel.</div>", unsafe_allow_html=True)
+            st.info("እባክዎ በግራ በኩል መጽሐፍ ፈልገው ደረጃ ይስጡ።")
 
     with col2:
-        st.subheader("✨ Personalized AI Recommendations")
-        if mode == "Dynamic New User Profile" and len(st.session_state.custom_ratings) == 0:
-            st.markdown("<div class='info-msg'>👋 Provide at least one book rating.</div>", unsafe_allow_html=True)
+        st.subheader("✨ የ AI መጽሐፍ ምክረ ሃሳብ")
+        if mode == "Dynamic New User Profile" and user_books.empty:
+            st.info("ምክረ ሃሳብ ለማግኘት ቢያንስ አንድ መጽሐፍ ደረጃ ይስጡ።")
         else:
-            with st.spinner("Executing dynamic matrix computations..."):
-                recommendations = recommender.recommend_books(user_id=int(selected_user), top_n=num_recommendations)
-                
-            if recommendations:
-                cols = st.columns(3)
-                for i, book in enumerate(recommendations):
-                    col_idx = i % 3
-                    with cols[col_idx]:
-                        cover_image = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150"
-                        search_url = f"https://openlibrary.org/search?q={book['title'].split(' Vol')[0].replace(' ', '+')}"
-                        is_amharic = False
-
-                        for meta in local_metadata.values():
-                            if book['title'] == meta["title"]:
-                                search_url = meta["url"]
-                                cover_image = meta["cover"]
-                                is_amharic = True
-                                break
-
-                        btn_class = "read-btn read-btn-amh" if is_amharic else "read-btn"
-                        btn_text = "📖 Open Book Info" if is_amharic else "📖 Open Library"
-
+            recs = recommender.recommend_books(user_id=int(selected_user), top_n=4)
+            if recs:
+                for b in recs:
+                    with st.container():
                         st.markdown(f"""
-                            <div class='rec-grid-card'>
-                                <div class='img-container'>
-                                    <img src='{cover_image}'>
-                                </div>
-                                <div class='rec-title'>{book['title']}</div>
-                                <div class='rec-author'>Author: {book['author']}</div>
-                                <div>
-                                    <span class='score-badge'>🎯 Proximity: {book['score']:.4f}</span>
-                                </div>
-                                <a href='{search_url}' target='_blank' class='{btn_class}'>{btn_text}</a>
-                            </div>
+                        <div style='background-color:white; padding:15px; border-radius:10px; margin-bottom:10px; border:1px solid #E2E8F0;'>
+                            <h4 style='margin:0; color:#0F172A;'>📘 {b['title']}</h4>
+                            <p style='margin:4px 0; color:#64748B; font-size:13px;'>ደራሲ: {b['author']}</p>
+                            <span style='background-color:#ECFDF5; color:#059669; padding:2px 6px; border-radius:5px; font-size:12px; font-weight:bold;'>🎯 AI Score: {b['score']:.4f}</span>
+                        </div>
                         """, unsafe_allow_html=True)
             else:
-                st.info("No correlation matches located.")
+                st.warning("ምንም ተዛማጅ አልተገኘም።")
 
 except Exception as e:
-    st.error(f"Application Initialization Error: {e}")
+    st.error(f"Error: {e}")
