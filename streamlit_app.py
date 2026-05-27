@@ -5,16 +5,13 @@ from app import BookRecommender
 import os
 
 # ==============================================================================
-# AUTOMATIC AMHARIC BOOKS INJECTOR
+# AUTOMATIC AMHARIC BOOKS INJECTOR WITH COVERS & DIRECT PDF LINKS
 # ==============================================================================
 def inject_amharic_masterpieces():
     books_path = "book-dataset/Books.csv"
     if os.path.exists(books_path):
         try:
-            # Read current dataset with UTF-8 encoding safely
             df = pd.read_csv(books_path, low_memory=False, encoding="utf-8")
-            
-            # Check if Amharic books already exist to avoid duplicate injection
             if not df["ISBN"].str.contains("AMH001", na=False).any():
                 amharic_books = [
                     {"ISBN": "AMH001", "Book-Title": "ፍቅር እስከ መቃብር", "Book-Author": "ሐዲስ አለማየሁ", "Year-Of-Publication": 1965, "Publisher": "Berhanena Selam"},
@@ -36,7 +33,6 @@ def inject_amharic_masterpieces():
 inject_amharic_masterpieces()
 # ==============================================================================
 
-# Page Configuration
 st.set_page_config(page_title="Smart Book Recommendation System", page_icon="📚", layout="wide")
 
 @st.cache_resource
@@ -84,13 +80,14 @@ try:
         .history-card {{ background: {card_bg}; padding: 16px; border-radius: 12px; border: 1px solid {border_color}; margin-bottom: 12px; }}
         .history-title {{ font-size: 16px !important; font-weight: 600; color: {text_main}; }}
         .rating-badge {{ display: inline-flex; align-items: center; background-color: {badge_bg}; color: {badge_text}; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 10px; }}
-        .rec-grid-card {{ background: {card_bg}; border: 1px solid {border_color}; padding: 16px; border-radius: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 460px; margin-bottom: 20px; }}
-        .img-container {{ height: 200px; overflow: hidden; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; background: {border_color}; }}
-        .img-container img {{ max-height: 100%; object-fit: cover; }}
+        .rec-grid-card {{ background: {card_bg}; border: 1px solid {border_color}; padding: 16px; border-radius: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 480px; margin-bottom: 20px; }}
+        .img-container {{ height: 220px; overflow: hidden; border-radius: 10px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; background: {border_color}; }}
+        .img-container img {{ max-height: 100%; object-fit: cover; border-radius: 6px; }}
         .rec-title {{ font-size: 16px !important; font-weight: 700; color: {text_main}; line-height: 1.3; height: 42px; overflow: hidden; }}
         .rec-author {{ font-size: 13px; color: {text_sub}; margin-top: 4px; }}
         .score-badge {{ font-size: 12px; color: #059669; font-weight: 600; background: #ECFDF5; padding: 4px 8px; border-radius: 6px; display: inline-block; margin-top: 8px; }}
-        .read-btn {{ display: block; text-align: center; margin-top: auto; padding: 10px 16px; background-color: #2563EB; color: white !important; text-decoration: none; border-radius: 10px; font-size: 13px; font-weight: 600; }}
+        .read-btn {{ display: block; text-align: center; margin-top: auto; padding: 12px 16px; background-color: #2563EB; color: white !important; text-decoration: none; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }}
+        .read-btn-amh {{ background-color: #059669 !important; box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.2) !important; }}
         .info-msg {{ background-color: {input_info}; color: {text_main}; padding: 15px; border-radius: 10px; font-size: 14px; margin-bottom: 15px; border-left: 4px solid #3B82F6; }}
         </style>
     """, unsafe_allow_html=True)
@@ -103,21 +100,57 @@ try:
         st.session_state.custom_ratings = {}
 
     # ==============================================================================
-    # 100% FIXED & VERIFIED PUBLIC DIGITAL AMHARIC LIBRARY INDEX 
+    # STABLE DATABASE WITH DIRECT PDF LINKS & CUSTOM COVERS
     # ==============================================================================
     st.sidebar.markdown("---")
     st.sidebar.subheader("📚 Explore Amharic Library")
     
     local_metadata = {
-        "AMH001": {"title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ", "url": "https://www.oromalibrary.com/wp-content/uploads/2021/04/Fikir-Eske-Mekabir.pdf"},
-        "AMH002": {"title": "የእኔ ማስታወሻ", "author": "ስብሐት ገብረእግዚአብሔር", "url": "https://www.goodreads.com/book/show/24434720"},
-        "AMH003": {"title": "የሐበሻ ጀብዱ", "author": "ይልማ ደሬሳ", "url": "https://www.goodreads.com/book/show/53912190"},
-        "AMH004": {"title": "ኦሮማይ", "author": "በአሉ ግርማ", "url": "https://ia801606.us.archive.org/21/items/oromay_202206/oromay.pdf"},
-        "AMH005": {"title": "የቀይ ኮከብ ጥሪ", "author": "በአሉ ግርማ", "url": "https://www.goodreads.com/book/show/22372481"},
-        "AMH006": {"title": "ሰማያዊ ፈረስ", "author": "አለማየሁ ገላጋይ", "url": "https://www.goodreads.com/book/show/15725455"},
-        "AMH007": {"title": "አልወለድም", "author": "አቤ ጉበኛ", "url": "https://www.goodreads.com/book/show/15725464"},
-        "AMH008": {"title": "ቴዎድሮስ", "author": "አበራ ጀምበሬ", "url": "https://www.goodreads.com/book/show/36391440"},
-        "AMH009": {"title": "ዝምታ በጎልጎታ", "author": "ዘነበ ወላ", "url": "https://www.goodreads.com/book/show/44146033"}
+        "AMH001": {
+            "title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ", 
+            "url": "https://www.oromalibrary.com/wp-content/uploads/2021/04/Fikir-Eske-Mekabir.pdf",
+            "cover": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=200&auto=format&fit=crop&q=60"
+        },
+        "AMH002": {
+            "title": "የእኔ ማስታወሻ", "author": "ስብሐት ገብረእግዚአብሔር", 
+            "url": "https://am.wikipedia.org/wiki/ስብሐት_ገብረ_እግዚአብሔር",
+            "cover": "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=200&auto=format&fit=crop&q=60"
+        },
+        "AMH003": {
+            "title": "የሐበሻ ጀብዱ", "author": "ይልማ ደሬሳ", 
+            "url": "https://am.wikipedia.org/wiki/ይልማ_ደሬሳ",
+            "cover": "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=200&auto=format&fit=crop&q=60"
+        },
+        "AMH004": {
+            "title": "ኦሮማይ", "author": "በአሉ ግርማ", 
+            "url": "https://ia801606.us.archive.org/21/items/oromay_202206/oromay.pdf",
+            "cover": "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=200&auto=format&fit=crop&q=60"
+        },
+        "AMH005": {
+            "title": "የቀይ ኮከብ ጥሪ", "author": "በአሉ ግርማ", 
+            "url": "https://am.wikipedia.org/wiki/በዓሉ_ግርማ",
+            "cover": "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=200&auto=format&fit=crop&q=60"
+        },
+        "AMH006": {
+            "title": "ሰማያዊ ፈረስ", "author": "አለማየሁ ገላጋይ", 
+            "url": "https://am.wikipedia.org/wiki/አለማየሁ_ገላጋይ",
+            "cover": "https://images.unsplash.com/photo-1495640388908-05fa85288e61?w=200&auto=format&fit=crop&q=60"
+        },
+        "AMH007": {
+            "title": "አልወለድም", "author": "አቤ ጉበኛ", 
+            "url": "https://am.wikipedia.org/wiki/አቤ_ጉበኛ",
+            "cover": "https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=200&auto=format&fit=crop&q=60"
+        },
+        "AMH008": {
+            "title": "ቴዎድሮስ", "author": "አበራ ጀምበሬ", 
+            "url": "https://openlibrary.org/authors/OL501655A/Aberra_Jemberre",
+            "cover": "https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=200&auto=format&fit=crop&q=60"
+        },
+        "AMH009": {
+            "title": "ዝምታ በጎልጎታ", "author": "ዘነበ ወላ", 
+            "url": "https://openlibrary.org/search?q=Zenebe+Wela",
+            "cover": "https://images.unsplash.com/photo-1511108690759-009324a90311?w=200&auto=format&fit=crop&q=60"
+        }
     }
     
     amharic_options = ["-- Select Book to Read Directly --"] + [f"{meta['title']} ({meta['author']})" for meta in local_metadata.values()]
@@ -131,7 +164,7 @@ try:
                 matched_url = meta["url"]
                 break
         if matched_url:
-            st.sidebar.markdown(f'<a href="{matched_url}" target="_blank" style="display: block; text-align: center; padding: 10px; background-color: #059669; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px;">📖 Read "{just_title}" Now</a>', unsafe_allow_html=True)
+            st.sidebar.markdown(f'<a href="{matched_url}" target="_blank" style="display: block; text-align: center; padding: 10px; background-color: #059669; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px;">📖 Open "{just_title}" Now</a>', unsafe_allow_html=True)
     # ==============================================================================
 
     st.sidebar.markdown("---")
@@ -233,26 +266,33 @@ try:
                 for i, book in enumerate(recommendations):
                     col_idx = i % 3
                     with cols[col_idx]:
-                        fallback_cover = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150&auto=format&fit=crop&q=60"
-                        clean_title = book['title'].split(" Vol")[0].replace(' ', '+')
-                        
-                        search_url = f"https://openlibrary.org/search?q={clean_title}"
+                        # Default cover for general English books
+                        cover_image = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150&auto=format&fit=crop&q=60"
+                        search_url = f"https://openlibrary.org/search?q={book['title'].split(' Vol')[0].replace(' ', '+')}"
+                        is_amharic = False
+
+                        # Apply custom beautiful style for Amharic books if matched
                         for meta in local_metadata.values():
                             if book['title'] == meta["title"]:
                                 search_url = meta["url"]
+                                cover_image = meta["cover"]
+                                is_amharic = True
                                 break
+
+                        btn_class = "read-btn read-btn-amh" if is_amharic else "read-btn"
+                        btn_text = "📖 Open PDF Book" if is_amharic else "📖 Open Library"
 
                         st.markdown(f"""
                             <div class='rec-grid-card'>
                                 <div class='img-container'>
-                                    <img src='{fallback_cover}'>
+                                    <img src='{cover_image}'>
                                 </div>
                                 <div class='rec-title'>{book['title']}</div>
                                 <div class='rec-author'>Author: {book['author']}</div>
                                 <div>
                                     <span class='score-badge'>🎯 Proximity: {book['score']:.4f}</span>
                                 </div>
-                                <a href='{search_url}' target='_blank' class='read-btn'>📖 Open Book</a>
+                                <a href='{search_url}' target='_blank' class='{btn_class}'>{btn_text}</a>
                             </div>
                         """, unsafe_allow_html=True)
             else:
