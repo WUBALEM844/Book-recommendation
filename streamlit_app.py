@@ -19,7 +19,13 @@ def inject_amharic_masterpieces():
                 amharic_books = [
                     {"ISBN": "AMH001", "Book-Title": "ፍቅር እስከ መቃብር", "Book-Author": "ሐዲስ አለማየሁ", "Year-Of-Publication": 1965, "Publisher": "Berhanena Selam"},
                     {"ISBN": "AMH002", "Book-Title": "የእኔ ማስታወሻ", "Book-Author": "ስብሐት ገብረእግዚአብሔር", "Year-Of-Publication": 2001, "Publisher": "Mega Publishing"},
-                    {"ISBN": "AMH003", "Book-Title": "የሐበሻ ጀብዱ", "Book-Author": "ይልማ ደሬሳ", "Year-Of-Publication": 1970, "Publisher": "Artistic Printing Press"}
+                    {"ISBN": "AMH003", "Book-Title": "የሐበሻ ጀብዱ", "Book-Author": "ይልማ ደሬሳ", "Year-Of-Publication": 1970, "Publisher": "Artistic Printing Press"},
+                    {"ISBN": "AMH004", "Book-Title": "ኦሮማይ", "Book-Author": "በአሉ ግርማ", "Year-Of-Publication": 1983, "Publisher": "Kuraz"},
+                    {"ISBN": "AMH005", "Book-Title": "የቀይ ኮከብ ጥሪ", "Book-Author": "በአሉ ግርማ", "Year-Of-Publication": 1980, "Publisher": "Kuraz"},
+                    {"ISBN": "AMH006", "Book-Title": "ሰማያዊ ፈረስ", "Book-Author": "አለማየሁ ገላጋይ", "Year-Of-Publication": 2012, "Publisher": "Farfar"},
+                    {"ISBN": "AMH007", "Book-Title": "አልወለድም", "Book-Author": "አቤ ጉበኛ", "Year-Of-Publication": 1963, "Publisher": "Berhanena Selam"},
+                    {"ISBN": "AMH008", "Book-Title": "ቴዎድሮስ", "Book-Author": "አበራ ጀምበሬ", "Year-Of-Publication": 1993, "Publisher": "Mega"},
+                    {"ISBN": "AMH009", "Book-Title": "ዝምታ በጎልጎታ", "Book-Author": "ዘነበ ወላ", "Year-Of-Publication": 2002, "Publisher": "Unknown"}
                 ]
                 amharic_df = pd.DataFrame(amharic_books)
                 # Concatenate and save back tightly using forced UTF-8
@@ -108,6 +114,41 @@ try:
     if "custom_ratings" not in st.session_state:
         st.session_state.custom_ratings = {}
 
+    # ==============================================================================
+    # NEW FEATURE: DIRECT AMHARIC LIBRARY DROPDOWN IN SIDEBAR
+    # ==============================================================================
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📚 Explore Amharic Library")
+    
+    local_metadata = {
+        "AMH001": {"title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ", "url": "https://archive.org/details/fiqir-eske-meqabir"},
+        "AMH002": {"title": "የእኔ ማስታወሻ", "author": "ስብሐት ገብረእግዚአብሔር", "url": "https://www.goodreads.com/book/show/24434720"},
+        "AMH003": {"title": "የሐበሻ ጀብዱ", "author": "ይልማ ደሬሳ", "url": "https://www.goodreads.com/book/show/53912190"},
+        "AMH004": {"title": "ኦሮማይ", "author": "በአሉ ግርማ", "url": "https://archive.org/details/oromay-by-baalu-girma"},
+        "AMH005": {"title": "የቀይ ኮከብ ጥሪ", "author": "በአሉ ግርማ", "url": "https://archive.org/details/ye-qey-kokeb-tiri"},
+        "AMH006": {"title": "ሰማያዊ ፈረስ", "author": "አለማየሁ ገላጋይ", "url": "https://www.goodreads.com/book/show/15725455"},
+        "AMH007": {"title": "አልወለድም", "author": "አቤ ጉበኛ", "url": "https://archive.org/details/alweledm-by-abe-gubegna"},
+        "AMH008": {"title": "ቴዎድሮስ", "author": "አበራ ጀምበሬ", "url": "https://archive.org/details/tewodros-book"},
+        "AMH009": {"title": "ዝምታ በጎልጎታ", "author": "ዘነበ ወላ", "url": "https://archive.org/details/zimita-be-golgota"}
+    }
+    
+    # Format options for dropdown list display
+    amharic_options = ["-- Select Book to Read Directly --"] + [f"{meta['title']} ({meta['author']})" for meta in local_metadata.values()]
+    selected_amharic_dropdown = st.sidebar.selectbox("Choose a book to open instantly:", amharic_options)
+    
+    if selected_amharic_dropdown != "-- Select Book to Read Directly --":
+        # Extract title from selection to match link
+        just_title = selected_amharic_dropdown.split(" (")[0]
+        matched_url = ""
+        for meta in local_metadata.values():
+            if meta["title"] == just_title:
+                matched_url = meta["url"]
+                break
+        if matched_url:
+            st.sidebar.markdown(f'<a href="{matched_url}" target="_blank" style="display: block; text-align: center; padding: 10px; background-color: #059669; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-bottom: 15px;">📖 Open "{just_title}" Now</a>', unsafe_allow_html=True)
+    # ==============================================================================
+
+    st.sidebar.markdown("---")
     mode = st.sidebar.radio("Operational Mode:", ["Simulate Dataset User", "Dynamic New User Profile"])
 
     if mode == "Simulate Dataset User":
@@ -126,7 +167,7 @@ try:
         # Get Titles and add fallback mechanism for Unicode matching
         all_books_list = list(recommender.books_df["Book-Title"].dropna().unique())
         
-        local_masterpieces = ["ፍቅር እስከ መቃብር", "የእኔ ማስታወሻ", "የሐበሻ ጀብዱ"]
+        local_masterpieces = [meta["title"] for meta in local_metadata.values()]
         for masterpiece in local_masterpieces:
             if masterpiece not in all_books_list:
                 all_books_list.append(masterpiece)
@@ -146,9 +187,13 @@ try:
                 try:
                     chosen_isbn = recommender.books_df[recommender.books_df["Book-Title"] == chosen_book_title]["ISBN"].values[0]
                 except IndexError:
-                    if chosen_book_title == "ፍቅር እስከ መቃብር": chosen_isbn = "AMH001"
-                    elif chosen_book_title == "የእኔ ማስታወሻ": chosen_isbn = "AMH002"
-                    else: chosen_isbn = "AMH003"
+                    # Amharic Dynamic Fallback Router
+                    matched_isbn = "AMH001"
+                    for key, meta in local_metadata.items():
+                        if meta["title"] == chosen_book_title:
+                            matched_isbn = key
+                            break
+                    chosen_isbn = matched_isbn
                     
                 st.session_state.custom_ratings[chosen_isbn] = rating_value
                 st.sidebar.success(f"📌 '{chosen_book_title}' successfully registered to profile!")
@@ -161,12 +206,6 @@ try:
 
         custom_rows = []
         for isbn, rate in st.session_state.custom_ratings.items():
-            local_metadata = {
-                "AMH001": {"title": "ፍቅር እስከ መቃብር", "author": "ሐዲስ አለማየሁ"},
-                "AMH002": {"title": "የእኔ ማስታወሻ", "author": "ስብሐት ገብረእግዚአብሔር"},
-                "AMH003": {"title": "የሐበሻ ጀብዱ", "author": "ይልማ ደሬሳ"}
-            }
-            
             if isbn in local_metadata:
                 custom_rows.append({
                     "User-ID": selected_user, "ISBN": isbn, "Book-Rating": rate,
@@ -234,15 +273,12 @@ try:
 
                         clean_title = book['title'].split(" Vol")[0].replace(' ', '+')
                         
-                        # Direct reading redirection for Amharic masterpieces
-                        if book['title'] == "ፍቅር እስከ መቃብር":
-                            search_url = "https://archive.org/details/fiqir-eske-meqabir"
-                        elif book['title'] == "የእኔ ማስታወሻ":
-                            search_url = "https://www.goodreads.com/book/show/24434720"
-                        elif book['title'] == "የሐበሻ ጀብዱ":
-                            search_url = "https://www.goodreads.com/book/show/53912190"
-                        else:
-                            search_url = f"https://openlibrary.org/search?q={clean_title}"
+                        # Direct reading redirection logic
+                        search_url = f"https://openlibrary.org/search?q={clean_title}"
+                        for meta in local_metadata.values():
+                            if book['title'] == meta["title"]:
+                                search_url = meta["url"]
+                                break
 
                         st.markdown(f"""
                             <div class='rec-grid-card'>
